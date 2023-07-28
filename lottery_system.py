@@ -1,90 +1,113 @@
 import random
 
-# Number of Players that will play the game
-def get_player_num():
-    num = ''
-    while num.isdigit() == False or int(num) < 6:
-        num = input('Enter the number of players that would like to play: ')
-        if num.isdigit() == False:
-            print('Sorry, but you did not enter an integer. Please try again.')
-        elif int(num) < 6:
-            print('Please enter at least 6')
-    return int(num)
+RULE_OPTION = 1
+PLAY_OPTION = 2
 
-# Getting 3 integers from each Players
-def get_num_list(player_num, range_num):
-    num_list = []
-    for i in range(range_num):
-        while True:
-            player_input = input(f"Enter integer {i+1} for player {player_num}: ")
-            if not player_input.isdigit():
-                print("Invalid input! Please enter an integer.")
-            else:
-                num = int(player_input)
-                if 1 <= num <= 100:
-                    num_list.append(num)
-                    break
-                else:
-                    print("Invalid input! Please enter an integer between 1 and 100.")
-    return num_list
+# Display the rules of the game
+def display_rules():
+    rules = f"""
+----------WELCOME TO ELITE LOTTERY GAME----------
 
+RULES:
+- You must stake before you play.
+- You need at least 6 players to play.
+- Choose 3 unique numbers between 1 and 100.
+- To win, you must match at least 2 numbers.
 
-# Getting the stake value from each Players
-def get_stake_input(prompt):
+Press {PLAY_OPTION} to start the game.
+    """
+    print(rules)
+
+# Ask players for input
+def get_integer_input(prompt, min_val=None, max_val=None):
     while True:
         try:
-            player_input = int(input(prompt))
-            return player_input
+            value = int(input(prompt))
+            if min_val is not None and value < min_val:
+                print(f"Please enter a valid number greater than or equal to {min_val}.")
+            elif max_val is not None and value > max_val:
+                print(f"Please enter a valid number less than or equal to {max_val}.")
+            else:
+                return value
         except ValueError:
-            print("Invalid input! Please enter an integer.")
+            print("Invalid input. Please enter a valid integer.")
 
+# Gets the number of players that wants to play
+def get_player_num():
+    return get_integer_input("Enter the number of players that would like to play (minimum 6): ", min_val=6)
 
-# Generating Players data
-def gen_player_data_list():
-    player_nums = get_player_num()
-    players_data = []
-    for i in range(1,player_nums + 1):
-        num_list = get_num_list(i, 3)
-        stake_value = get_stake_input(f"Enter stake value for player {i}: ")
-        players_data.append({
-            'player_id': i,
-            'num_list': num_list,
-            'stake_value': stake_value
-        })
-    return players_data
-
-players_data_list = gen_player_data_list()
-
-# Getting random lucky numbers
-def get_lucky_nums():
-    lucky_nums = []
+# Gets the numbers of each player
+def get_num_list(player_num):
+    print(f"\nEnter three unique numbers (1 to 100) for player {player_num}:")
+    num_list = []
     for i in range(3):
-        lucky_nums.append(random.randint(1, 100))
-    return lucky_nums
+        while True:
+            num = get_integer_input(f"Enter a number {i+1}: ", min_val=1, max_val=100)
+            if num in num_list:
+                print("Please enter a unique number.")
+            else:
+                num_list.append(num)
+                break
+    return num_list
 
-lucky_nums = get_lucky_nums()
+# Get stake amount
+def get_stake_input(prompt):
+    return get_integer_input(prompt, min_val=1)
 
-# Checking if there's any winner
-def check_winner():
-    winner = []
+# Generates 3 random lucky number
+def generate_random_nums():
+    return [random.randint(1, 100) for _ in range(3)]
+
+# Checks for winner
+def check_winner(players_data_list, lucky_nums):
+    winners = []
     for player in players_data_list:
         player_num_set = set(player['num_list'])
         lucky_num_set = set(lucky_nums)
-        if len(player_num_set.intersection(lucky_num_set)) >=2:
-            print(f"Congratulations!!!!\nPlayer {player['player_id']} won!!!!")
-            winner.append(player)
-    return winner 
+        if len(player_num_set.intersection(lucky_num_set)) >= 2:
+            print(f"\nCongratulations! Player {player['player_id']} won!")
+            winners.append(player)
+    return winners
 
-
-def get_winner():
-    winners_list = check_winner()
-    pool = sum([player['stake_value'] for player in players_data_list])
+# Displays winner
+def get_winner(winners_list, total_pool):
     if len(winners_list) >= 1:
-        average = pool / len(winners_list)
+        average = total_pool / len(winners_list)
+        print("\nWinners:")
         for winner in winners_list:
-            print(f"Player {winner['player_id']} won {average}")
-    elif len(winners_list) == 0:
-        print(f'The house won the {pool}')
+            print(f"Player {winner['player_id']} won {average:.2f}")
+    else:
+        print("\nNo winner. The house won the pool")
 
-get_winner()
+def main():
+    while True:
+        display_rules()
+        user_choice = get_integer_input("> ", RULE_OPTION, PLAY_OPTION)
+        if user_choice == PLAY_OPTION:
+            player_nums = get_player_num()
+            players_data_list = []
+            total_pool = 0
+            for i in range(1, player_nums + 1):
+                stake_value = get_stake_input(f"Enter stake value for player {i}: ")
+                num_list = get_num_list(i)
+                total_pool += stake_value
+                players_data_list.append({
+                    'player_id': i,
+                    'stake_value': stake_value,
+                    'num_list': num_list
+                })
 
+            lucky_nums = generate_random_nums()
+            print("\nLucky Numbers:", lucky_nums)
+
+            winners_list = check_winner(players_data_list, lucky_nums)
+            get_winner(winners_list, total_pool)
+
+        else:
+            print("Invalid choice. Please choose again.")
+
+        play_again = input("Do you want to play again? (y/n): ")
+        if play_again.lower() != 'y':
+            break
+
+main()

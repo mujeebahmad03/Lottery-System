@@ -72,12 +72,14 @@ def check_winner(players_data_list, lucky_nums):
 # Displays winner
 def get_winner(winners_list, total_pool):
     if len(winners_list) >= 1:
-        average = total_pool / len(winners_list)
+        total_stake = sum(winner['stake_value'] for winner in winners_list)
         print("\nWinners:")
         for winner in winners_list:
-            print(f"Player {winner['player_id']} won {average:.2f}")
+            stake_proportion = winner['stake_value'] / total_stake
+            stake_won = stake_proportion * total_pool
+            print(f"Player {winner['player_id']} won {stake_won:.2f}")
     else:
-        print("\nNo winner. The house won the pool")
+        print("\nNo winner. The house won the pool.")
 
 def main():
     while True:

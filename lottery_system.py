@@ -81,7 +81,7 @@ def get_winner(winners_list, total_pool):
     else:
         print("\nNo winner. The house won the pool.")
 
-def main():
+def lottery_system():
     while True:
         display_rules()
         user_choice = get_integer_input("> ", RULE_OPTION, PLAY_OPTION)
@@ -112,4 +112,4 @@ def main():
         if play_again.lower() != 'y':
             break
 
-main()
+lottery_system()
